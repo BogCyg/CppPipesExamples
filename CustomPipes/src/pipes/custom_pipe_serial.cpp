@@ -49,29 +49,36 @@ concept is_expected = requires( T t )
 	requires std::constructible_from< T, std::unexpected< typename T::error_type > >; 
 };
 
+//template < typename T, typename E, typename Function >
+//requires std::invocable< Function, T >
+//			&& is_expected< typename std::invoke_result_t< Function, T > >
+//constexpr auto operator | ( std::expected< T, E > && ex, Function && f ) -> typename std::invoke_result_t< Function, T >
+//{
+//	return ex ? std::invoke( std::forward< Function >( f ), * std::forward< std::expected< T, E > >( ex ) ) : ex;
+//}
 
+#if 1 //0
+// In this version if there is an error in the pipeline, then the further functions in the chaing are NOT called at all
 template < typename T, typename E, typename Function >
-requires std::invocable< Function, T >
-			&& is_expected< typename std::invoke_result_t< Function, T > >
-constexpr auto operator | ( std::expected< T, E > && ex, Function && f ) -> typename std::invoke_result_t< Function, T >
+requires std::invocable< Function, std::expected< T, E > >
+			&& is_expected< typename std::invoke_result_t< Function, std::expected< T, E > > >
+constexpr auto operator | ( std::expected< T, E > && ex, Function && f ) -> typename std::invoke_result_t< Function, std::expected< T, E > >
 {
 	return ex ? std::invoke( std::forward< Function >( f ), * std::forward< std::expected< T, E > >( ex ) ) : ex;
 }
 
-//
-//// We have a data structure to process
-//struct Payload
-//{
-//	std::string	fStr	{};
-//	int			fVal	{};
-//};
-//
-//// Some error types just for the example
-//enum class OpErrorType : unsigned char { kInvalidInput, kOverflow, kUnderflow };
-//
-//// For the pipe-line operation - the expected type is Payload,
-//// while the 'unexpected' is OpErrorType
-//using PayloadOrError = std::expected< Payload, OpErrorType >;
+#else
+
+// The second, more general version allows passing in and out std::expected with possibly different types
+// In this version all functions in the pipe are called and there is their responsibility to check if the passed object has and object or an error
+template < typename InT, typename InE, typename Function >
+requires std::invocable< Function, std::expected< InT, InE > >
+			&& is_expected< typename std::invoke_result_t< Function, std::expected< InT, InE > > >
+constexpr auto operator | ( std::expected< InT, InE > && ex, Function && f ) -> typename std::invoke_result_t< Function, std::expected< InT, InE > >
+{
+	return std::invoke( std::forward< Function >( f ), * std::forward< std::expected< InT, InE > >( ex ) );
+}
+#endif 
 
 
 PayloadOrError Payload_Proc_1( PayloadOrError && s )
