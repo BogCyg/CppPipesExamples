@@ -1,2 +1,6 @@
 Enter the build directory, then to build the project launch 
 cmake ..
+
+Project tested on Microsoft Visual Studio Enterprise 2022
+Version 17.10.4
+
