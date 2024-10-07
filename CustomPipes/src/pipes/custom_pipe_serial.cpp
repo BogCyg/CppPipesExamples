@@ -49,13 +49,6 @@ concept is_expected = requires( T t )
 	requires std::constructible_from< T, std::unexpected< typename T::error_type > >; 
 };
 
-//template < typename T, typename E, typename Function >
-//requires std::invocable< Function, T >
-//			&& is_expected< typename std::invoke_result_t< Function, T > >
-//constexpr auto operator | ( std::expected< T, E > && ex, Function && f ) -> typename std::invoke_result_t< Function, T >
-//{
-//	return ex ? std::invoke( std::forward< Function >( f ), * std::forward< std::expected< T, E > >( ex ) ) : ex;
-//}
 
 #if 1 //0
 // In this version if there is an error in the pipeline, then the further functions in the chaing are NOT called at all
