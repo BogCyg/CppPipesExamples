@@ -6,20 +6,21 @@
 
 
 
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <iostream>
-
-#include "helpers.h"
-
-//import state;
+#include <print>
 
 
 
 
-void Payload_PipeTest();
-void Payload_PipeTest_Monadic();
+namespace VectorsPipeTest
+{
+	void GenPipeTest();
+}
+
+
+namespace Monadic_VectorsPipeTest
+{
+	void GenPipeTest_Monadic();
+}
 
 
 void NB_ParallelPipelineTest();
@@ -27,15 +28,16 @@ void NB_ParallelPipelineTest();
 
 
 
+
 auto main() -> int
 {
-	print_nl( "\nRun serial pipe - Payload_PipeTest ... " );
-	Payload_PipeTest();
-	
-	print_nl( "\nRun serial pipe with MONADIC std::expected - Payload_PipeTest_Monadic ... " );
-	Payload_PipeTest_Monadic();
+	std::println( "\n=================\nRun VectorsPipeTest::GenPipeTest() ... " );
+	VectorsPipeTest::GenPipeTest();
 
-	print_nl( "\nRun parallel pipe - NB_ParallelPipelineTest ... " );
+	std::println( "\n=================\nRun Monadic_VectorsPipeTest::GenPipeTest_Monadic() ... " );
+	Monadic_VectorsPipeTest::GenPipeTest_Monadic();
+
+	std::println( "\n=================\nRun parallel pipe - NB_ParallelPipelineTest ... " );
 	NB_ParallelPipelineTest();
 
 	return 0;

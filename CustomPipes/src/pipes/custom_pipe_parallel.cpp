@@ -21,11 +21,12 @@
 #include <expected>
 #include <iomanip>			// for std::quoted
 
-#include "helpers.h"
-#include "range.h"
-
 #include <random>
 #include <print>
+
+#include <queue> 
+#include <mutex> 
+#include <condition_variable>
 
 
 import payload;
@@ -35,10 +36,6 @@ import payload;
  
 
 
-#include <queue> 
-#include <mutex> 
-#include <condition_variable>
-
 
 
 
@@ -46,7 +43,7 @@ import payload;
 
 
 template < typename Elem >
-class TNonBlockQueue
+class TSynchroQueue
 {
 
 public:
@@ -90,6 +87,13 @@ public:
 	// This is not thread safe!
 	auto size() const { return fQueue.size(); }
 
+public:
+
+	// This blocks also creation of the copy and move constructors, as well as the copy assignment.
+	// However, the default constructor and destructor are created by the compiler.
+	// See the book by N. Jousuttis.
+	TSynchroQueue & operator = ( TSynchroQueue && ) = delete;
+
 private:
 
 	std::queue< Elem >			fQueue;
@@ -112,7 +116,7 @@ using PaylodOrErrorProcFun = std::function< void ( PayloadOrError & in_elem, Pay
 
 
 
-using NB_PayloadOrError_Queue = TNonBlockQueue< PayloadOrError >;
+using NB_PayloadOrError_Queue = TSynchroQueue< PayloadOrError >;
 
 using NB_PayloadOrError_Queue_SS = std::shared_ptr< NB_PayloadOrError_Queue >;
 
@@ -120,7 +124,7 @@ using NB_PayloadOrError_Queue_SS = std::shared_ptr< NB_PayloadOrError_Queue >;
 
 
 template< typename Elem >
-using NB_ParallelPipeFun = std::function< void ( TNonBlockQueue< Elem > & in_q, TNonBlockQueue< Elem > & out_q ) >;
+using NB_ParallelPipeFun = std::function< void ( TSynchroQueue< Elem > & in_q, TSynchroQueue< Elem > & out_q ) >;
 
 using NB_ParallelPipeFun_4_PayloadOrError = NB_ParallelPipeFun< PayloadOrError >;
 
@@ -163,20 +167,17 @@ void		NB_ParPipe_Fun_Loop( NB_PayloadOrError_Queue_SS in_q, NB_PayloadOrError_Qu
 }
 
 
-NB_PayloadOrError_Queue_SS		PipeProcThreadFrame_SS( NB_PayloadOrError_Queue_SS in_q, PaylodOrErrorProcFun && theCartridgeFun )
+
+auto operator | ( NB_PayloadOrError_Queue_SS in_queue, PaylodOrErrorProcFun && f ) -> NB_PayloadOrError_Queue_SS
 {
 	NB_PayloadOrError_Queue_SS		out_queue_sp( std::make_shared< NB_PayloadOrError_Queue >() );
 
-	std::jthread	theThread( NB_ParPipe_Fun_Loop, in_q, out_queue_sp, std::move( theCartridgeFun ) );
+	std::jthread	theThread( NB_ParPipe_Fun_Loop, in_queue, out_queue_sp, std::move( f ) );
 	auto th_id = theThread.get_id();
 	theThread.detach();	// Let it run separately
 
 	return out_queue_sp;
-}
 
-auto operator | ( NB_PayloadOrError_Queue_SS in_queue, PaylodOrErrorProcFun && f ) -> NB_PayloadOrError_Queue_SS
-{
-	return PipeProcThreadFrame_SS( in_queue, std::move( f ) );
 }
 
 
@@ -220,14 +221,14 @@ void NB_ParallelPipelineTest()
 	auto init_size = theFirstQueue->size();
 
 
-	std::print( "init_size = ", init_size );
+	std::println( "init_size = {}", init_size );
 
 
 	NB_PayloadOrError_Queue_SS zeroQueue( std::make_shared< NB_PayloadOrError_Queue >() );
 
 
-	//auto out_q_SS = /*theFirstQueue*/zeroQueue | echo_fun2 | echo_fun2 | echo_fun2;
-	auto out_q_SS = zeroQueue | add_2 | add_3 | add_2;
+	auto out_q_SS = theFirstQueue | add_2 | add_3 | add_2;
+	//uto out_q_SS = zeroQueue | add_2 | add_3 | add_2;
 
 	// Here the above pipeline is already running and waiting for the objects to process
 	// This is done in the following loop - objects from theFirstQueue are moved to zeroQueue
@@ -249,10 +250,10 @@ void NB_ParallelPipelineTest()
 	{
 		auto ret_e = out_q_SS->pop();
 		if( ret_e )
-			if( auto & s = ret_e->value().fStr; s == kStopToken )
-				print_nl( "The STOP token detected" );
+			if( const auto & s = ret_e->value().fStr; s == kStopToken )
+				std::println( "The STOP token detected" );
 			else
-				print_nl( "fStr = ", s );
+				std::println( "fStr = {}", s );
 	}
 
 
