@@ -261,9 +261,11 @@ namespace VectorsPipeTest
 	{
 		auto cur_dir = fs::current_path();
 
+		const auto kFileExt { "txt"sv };
+
 		// Here we create our CUSTOM PIPE
 		auto result =	path_exp( ".\\..\\data"sv ) 
-							| [] ( auto && pe ) { return load_paths( std::move( pe ), "txt"sv ); }
+							| [ ext = kFileExt ] ( auto && pe ) { return load_paths( std::move( pe ), ext ); }
 							| load_vectors 
 							| vec_normalize 
 							| comp_distance

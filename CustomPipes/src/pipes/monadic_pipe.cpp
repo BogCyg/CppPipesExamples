@@ -311,9 +311,10 @@ namespace Monadic_VectorsPipeTest
 
 	void GenPipeTest_Monadic()
 	{
-	
+		const auto kFileExt { "txt"sv };
+
 		auto result =	path_com_exp( ".\\..\\data"sv )	
-							.and_then( [] ( auto && pe ) { return load_paths_common( std::move( pe ), "txt"sv ); } )
+							.and_then( [ ext = kFileExt ] ( auto && pe ) { return load_paths_common( std::move( pe ), ext ); } )
 							.and_then( load_vectors_common )
 							.and_then( vec_normalize_common )
 							.and_then( comp_distance_common )		
