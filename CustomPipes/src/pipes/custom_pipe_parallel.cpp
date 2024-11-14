@@ -184,18 +184,18 @@ auto operator | ( NB_PayloadOrError_Queue_SS in_queue, PaylodOrErrorProcFun && f
 
 auto add_2( PayloadOrError && a )
 {
-	PayloadOrError b { a };
-	b->fStr += "_2";
-	b->fVal += 2;
+	auto b { a };
+	if( b ) 
+		b->fStr += "_2", b->fVal += 2;
 	return b;
 }
 
 
 auto add_3( PayloadOrError && a )
 {
-	PayloadOrError b { a };
-	b->fStr += "_3";
-	b->fVal += 3;
+	auto b { a };
+	if( b )
+		b->fStr += "_3",	b->fVal += 3;
 	return b;
 }
 
