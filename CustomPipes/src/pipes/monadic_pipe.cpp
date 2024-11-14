@@ -320,7 +320,7 @@ namespace Monadic_VectorsPipeTest
 							.and_then( comp_distance_common )		
 							.and_then( find_max_common )
 
-							.and_then( [] ( auto && r )
+							./*and_then*/transform( [] ( auto && r )
 									{
 										auto [ x, y, v ] = r;
 										std::println( "success @ idx=({},{}; val={:.3f})\n", x, y, v );

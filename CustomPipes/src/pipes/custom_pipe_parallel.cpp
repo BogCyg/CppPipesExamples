@@ -110,7 +110,7 @@ private:
 
 
 
-using PaylodOrErrorProcFun = std::function< void ( PayloadOrError & in_elem, PayloadOrError & out_elem ) >;
+using PaylodOrErrorProcFun = std::function< PayloadOrError ( PayloadOrError && in_elem ) >;
 
 
 
@@ -157,8 +157,9 @@ void		NB_ParPipe_Fun_Loop( NB_PayloadOrError_Queue_SS in_q, NB_PayloadOrError_Qu
 		}
 		else
 		{
-			PayloadOrError outElem;
-			theCartridgeFun( * pop_elem_or_none, outElem );		// do some action with the pop'ed element
+			//PayloadOrError outElem;
+			//theCartridgeFun( * pop_elem_or_none, outElem );		// do some action with the pop'ed element
+			auto outElem = theCartridgeFun( std::move( * pop_elem_or_none ) );		// do some action with the pop'ed element
 			out_q->push( std::move( outElem ) );
 		}
 
@@ -181,31 +182,21 @@ auto operator | ( NB_PayloadOrError_Queue_SS in_queue, PaylodOrErrorProcFun && f
 }
 
 
-
-void echo_fun( auto & a, auto & b )
+auto add_2( PayloadOrError && a )
 {
-	b = a; /*just a copy*/ 
-}
-
-void echo_fun2( PayloadOrError & a, PayloadOrError & b )
-{
-	b = a; /*just a copy*/ 
-}
-
-
-void add_2( PayloadOrError & a, PayloadOrError & b )
-{
-	b = a;
+	PayloadOrError b { a };
 	b->fStr += "_2";
 	b->fVal += 2;
+	return b;
 }
 
 
-void add_3( PayloadOrError & a, PayloadOrError & b )
+auto add_3( PayloadOrError && a )
 {
-	b = a;
+	PayloadOrError b { a };
 	b->fStr += "_3";
 	b->fVal += 3;
+	return b;
 }
 
 
