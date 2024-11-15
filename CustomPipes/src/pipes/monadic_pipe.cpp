@@ -320,7 +320,7 @@ namespace Monadic_VectorsPipeTest
 							.and_then( comp_distance_common )		
 							.and_then( find_max_common )
 
-							./*and_then*/transform( [] ( auto && r )
+							.and_then( [] ( auto && r )
 									{
 										auto [ x, y, v ] = r;
 										std::println( "success @ idx=({},{}; val={:.3f})\n", x, y, v );
@@ -343,9 +343,9 @@ namespace Monadic_VectorsPipeTest
 
 										return max_com_exp( std::unexpected( DistErr::kWrongData ) );		// propagate the error further on
 									}
-								)
+								);
 
-														;
+
 		std::println( "typeid( result ).name() == {}", typeid( result ).name() );
 
 
